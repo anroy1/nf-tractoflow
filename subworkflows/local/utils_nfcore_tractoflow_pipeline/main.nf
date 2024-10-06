@@ -1,5 +1,5 @@
 //
-// Subworkflow with functionality specific to the nf/tractoflow pipeline
+// Subworkflow with functionality specific to the nf/surgeryflow pipeline
 //
 
 /*
@@ -116,14 +116,14 @@ workflow PIPELINE_INITIALISATION {
             {
                 if(item[key] == 'todo')
                 {
-                    error "Error ~ Please look at your tractoflow_bids_struct.json " +
+                    error "Error ~ Please look at your surgeryflow_bids_struct.json " +
                     "in Read_BIDS folder.\nPlease fix todo fields and give " +
                     "this file in input using --bids_config option instead of " +
                     "using --bids."
                 }
                 else if (item[key] == 'error_readout')
                 {
-                    error "Error ~ Please look at your tractoflow_bids_struct.json " +
+                    error "Error ~ Please look at your surgeryflow_bids_struct.json " +
                     "in Read_BIDS folder.\nPlease fix error_readout fields. "+
                     "This error indicate that readout time looks wrong.\n"+
                     "Please correct the value or remove the subject in the json and " +

@@ -1,9 +1,9 @@
 #!/usr/bin/env nextflow
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    nf/tractoflow
+    nf/surgeryflow
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    Github : https://github.com/nf/tractoflow
+    Github : https://github.com/nf/surgeryflow
 ----------------------------------------------------------------------------------------
 */
 
@@ -15,9 +15,9 @@ nextflow.enable.dsl = 2
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
 
-include { TRACTOFLOW  } from './workflows/tractoflow'
-include { PIPELINE_INITIALISATION } from './subworkflows/local/utils_nfcore_tractoflow_pipeline'
-include { PIPELINE_COMPLETION     } from './subworkflows/local/utils_nfcore_tractoflow_pipeline'
+include { SURGERYFLOW  } from './workflows/surgeryflow'
+include { PIPELINE_INITIALISATION } from './subworkflows/local/utils_nfcore_surgeryflow_pipeline'
+include { PIPELINE_COMPLETION     } from './subworkflows/local/utils_nfcore_surgeryflow_pipeline'
 
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -28,7 +28,7 @@ include { PIPELINE_COMPLETION     } from './subworkflows/local/utils_nfcore_trac
 //
 // WORKFLOW: Run main analysis pipeline depending on type of input
 //
-workflow NF_TRACTOFLOW {
+workflow NF_SURGERYFLOW {
 
     take:
     samplesheet // channel: samplesheet read in from --input
@@ -38,12 +38,12 @@ workflow NF_TRACTOFLOW {
     //
     // WORKFLOW: Run pipeline
     //
-    TRACTOFLOW (
+    SURGERYFLOW (
         samplesheet
     )
 
     emit:
-    multiqc_report = TRACTOFLOW.out.multiqc_report // channel: /path/to/multiqc_report.html
+    multiqc_report = SURGERYFLOW.out.multiqc_report // channel: /path/to/multiqc_report.html
 
 }
 /*
@@ -72,7 +72,7 @@ workflow {
     //
     // WORKFLOW: Run main workflow
     //
-    NF_TRACTOFLOW (
+    NF_SURGERYFLOW (
         PIPELINE_INITIALISATION.out.samplesheet
     )
 
@@ -86,7 +86,7 @@ workflow {
         params.outdir,
         params.monochrome_logs,
         params.hook_url,
-        NF_TRACTOFLOW.out.multiqc_report
+        NF_SURGERYFLOW.out.multiqc_report
     )
 }
 
