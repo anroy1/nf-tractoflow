@@ -14,7 +14,7 @@ include {   methodsDescriptionText  } from '../subworkflows/local/utils_nfcore_t
 include {   PREPROC_DWI                                               } from '../subworkflows/nf-scil/preproc_dwi/main'
 include {   PREPROC_T1                                                } from '../subworkflows/nf-scil/preproc_t1/main'
 include {   RECONST_DTIMETRICS as REGISTRATION_FA                     } from '../modules/nf-scil/reconst/dtimetrics/main'
-include {   REGISTRATION as T1_REGISTRATION                           } from '../subworkflows/nf-scil/registration/main'
+include {   REGISTRATION_CONVERT as FORWARD_CONVERT                   } from '../modules/nf-scil/registration/convert/main'
 include {   REGISTRATION_ANTSAPPLYTRANSFORMS as TRANSFORM_WMPARC      } from '../modules/nf-scil/registration/antsapplytransforms/main'
 include {   REGISTRATION_ANTSAPPLYTRANSFORMS as TRANSFORM_APARC_ASEG  } from '../modules/nf-scil/registration/antsapplytransforms/main'
 include {   ANATOMICAL_SEGMENTATION                                   } from '../subworkflows/nf-scil/anatomical_segmentation/main'
@@ -111,13 +111,15 @@ workflow SURGERYFLOW {
     REGISTRATION_FA( ch_registration_fa )
 
     //
-    // SUBWORKFLOW: Run REGISTRATION
+    // MODULE: Run REGISTRATION_CONVERT
     //
-    T1_REGISTRATION(
+
+    REGISTRATON_CONVERT(
+        [], // Skip affine conversion
+        T1_REGISTRATION.out.transfo_image
         PREPROC_T1.out.t1_final,
-        PREPROC_DWI.out.b0,
-        REGISTRATION_FA.out.fa,
-        []
+        [], // Target image
+        []  // fs_license
     )
 
     /* SEGMENTATION */
@@ -129,7 +131,7 @@ workflow SURGERYFLOW {
         ch_inputs.wmparc
             .filter{ it[1] }
             .join(PREPROC_DWI.out.b0)
-            .join(T1_REGISTRATION.out.transfo_image)
+            .join(REGISTRATION_CONVERT.out.deform_transform)
             .map{ it[0..2] + [it[3..-1]] }
     )
 
@@ -140,7 +142,7 @@ workflow SURGERYFLOW {
         ch_inputs.aparc_aseg
             .filter{ it[1] }
             .join(PREPROC_DWI.out.b0)
-            .join(T1_REGISTRATION.out.transfo_image)
+            .join(REGISTRATION_CONVERT.out.deform_transform)
             .map{ it[0..2] + [it[3..-1]] }
     )
 
@@ -217,7 +219,10 @@ workflow SURGERYFLOW {
 
     /* BundleSeg input prep */
 
-    ch_tractogram = params.run_pft_tracking ? TRACKING_PFTTRACKING.out.trk : TRACKING_LOCALTRACKING.out.trk
+    /* Load atlas directory. If not provided, will automatically fetch the atlas archives. */
+    ch_atlas_directory = params.atlas_directory ? Channel.fromPath(params.atlas_directory) : [[]] //TODO: one or two brackets?
+
+    ch_tractogram = TRACKING_PFTTRACKING.out.trk.mix(TRACKING_LOCALTRACKING.out.trk)
     ch_bundle_seg = RECONST_DTIMETRICS.out.fa
         .join(ch_tractogram)
         .join(ch_atlas_directory)
