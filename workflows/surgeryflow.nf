@@ -14,7 +14,7 @@ include {   methodsDescriptionText  } from '../subworkflows/local/utils_nfcore_t
 include {   PREPROC_DWI                                               } from '../subworkflows/nf-scil/preproc_dwi/main'
 include {   PREPROC_T1                                                } from '../subworkflows/nf-scil/preproc_t1/main'
 include {   RECONST_DTIMETRICS as REGISTRATION_FA                     } from '../modules/nf-scil/reconst/dtimetrics/main'
-include {   REGISTRATION_CONVERT as FORWARD_CONVERT                   } from '../modules/nf-scil/registration/convert/main'
+include {   REGISTRATION_CONVERT as WARP_CONVERT                      } from '../modules/nf-scil/registration/convert/main'
 include {   REGISTRATION_ANTSAPPLYTRANSFORMS as TRANSFORM_WMPARC      } from '../modules/nf-scil/registration/antsapplytransforms/main'
 include {   REGISTRATION_ANTSAPPLYTRANSFORMS as TRANSFORM_APARC_ASEG  } from '../modules/nf-scil/registration/antsapplytransforms/main'
 include {   ANATOMICAL_SEGMENTATION                                   } from '../subworkflows/nf-scil/anatomical_segmentation/main'
@@ -114,7 +114,7 @@ workflow SURGERYFLOW {
     // MODULE: Run REGISTRATION_CONVERT
     //
 
-    REGISTRATON_CONVERT(
+    WARP_CONVERT(
         [], // Skip affine conversion
         T1_REGISTRATION.out.transfo_image
         PREPROC_T1.out.t1_final,
