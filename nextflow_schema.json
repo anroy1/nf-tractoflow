@@ -200,14 +200,14 @@
                     "default": "/human-data/mni_152_sym_09c/t1/t1_template.nii.gz",
                     "description": "Path to the template T1 for antsBrainExtraction.",
                     "format": "file-path",
-                    "exists": true
+                    "exists": false
                 },
                 "t1_bet_template_probability_map": {
                     "type": "string",
                     "default": "/human-data/mni_152_sym_09c/t1/t1_brain_probability_map.nii.gz",
                     "description": "Path to the template brain probability map for antsBrainExtraction.",
                     "format": "file-path",
-                    "exists": true
+                    "exists": false
                 }
             }
         },

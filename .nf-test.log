@@ -1,0 +1,8 @@
+Oct-19 17:26:31.691 [main] INFO  com.askimed.nf.test.App - nf-test 0.9.0
+Oct-19 17:26:31.702 [main] INFO  com.askimed.nf.test.App - Arguments: [test, --tag, subworkflows/registration, --profile, docker]
+Oct-19 17:26:32.435 [main] INFO  com.askimed.nf.test.App - Nextflow Version: 24.04.4
+Oct-19 17:26:32.439 [main] WARN  com.askimed.nf.test.commands.RunTestsCommand - No nf-test config file found.
+Oct-19 17:26:32.517 [main] INFO  com.askimed.nf.test.lang.dependencies.DependencyResolver - Loaded 117 files from directory /workspaces/nf-tractoflow in 0.077 sec
+Oct-19 17:26:32.518 [main] INFO  com.askimed.nf.test.lang.dependencies.DependencyResolver - Found 0 tests.
+Oct-19 17:26:32.519 [main] DEBUG com.askimed.nf.test.lang.dependencies.DependencyResolver - Found tests: []
+Oct-19 17:26:32.519 [main] WARN  com.askimed.nf.test.commands.RunTestsCommand - No tests or directories found containing test files. Or all testcases were filtered.

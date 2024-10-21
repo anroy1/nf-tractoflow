@@ -179,6 +179,21 @@
                     }
                 ],
                 "errorMessage": "Segmentation of the cortical parcellation in Nifti format, cannot contain spaces and must have extension '.nii' or '.nii.gz'"
+            },
+            "lesion_mask": {
+                "type": "string",
+                "anyOf": [
+                    {
+                        "format": "file-path",
+                        "exists": true,
+                        "pattern": "^\\S+(\\.nii)?\\.gz$"
+                    },
+                    {
+                        "format": "url",
+                        "mimetype": "application/gzip"
+                    }
+                ],
+                "errorMessage": "Lesion mask in Nifti format, cannot contain spaces and must have extension '.nii' or '.nii.gz'"
             }
         },
         "required": ["subject", "dwi", "bval", "bvec", "t1"]

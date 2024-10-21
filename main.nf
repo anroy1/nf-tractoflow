@@ -16,8 +16,8 @@ nextflow.enable.dsl = 2
 */
 
 include { SURGERYFLOW  } from './workflows/surgeryflow'
-include { PIPELINE_INITIALISATION } from './subworkflows/local/utils_nfcore_surgeryflow_pipeline'
-include { PIPELINE_COMPLETION     } from './subworkflows/local/utils_nfcore_surgeryflow_pipeline'
+include { PIPELINE_INITIALISATION } from './subworkflows/local/utils_nfcore_tractoflow_pipeline'
+include { PIPELINE_COMPLETION     } from './subworkflows/local/utils_nfcore_tractoflow_pipeline'
 
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -43,7 +43,9 @@ workflow NF_SURGERYFLOW {
     )
 
     emit:
-    multiqc_report = SURGERYFLOW.out.multiqc_report // channel: /path/to/multiqc_report.html
+    bundles = SURGERYFLOW.out.bundles              // channel: [ val(meta), [ bundles ] ]
+    t1_final = SURGERYFLOW.out.t1_final            // channel: [ val(meta), [ image ] ]
+    // multiqc_report = SURGERYFLOW.out.multiqc_report // channel: /path/to/multiqc_report.html
 
 }
 /*
@@ -79,15 +81,15 @@ workflow {
     //
     // SUBWORKFLOW: Run completion tasks
     //
-    PIPELINE_COMPLETION (
-        params.email,
-        params.email_on_fail,
-        params.plaintext_email,
-        params.outdir,
-        params.monochrome_logs,
-        params.hook_url,
-        NF_SURGERYFLOW.out.multiqc_report
-    )
+    // PIPELINE_COMPLETION (
+    //     params.email,
+    //     params.email_on_fail,
+    //     params.plaintext_email,
+    //     params.outdir,
+    //     params.monochrome_logs,
+    //     params.hook_url,
+    //     NF_SURGERYFLOW.out.multiqc_report
+    // )
 }
 
 /*

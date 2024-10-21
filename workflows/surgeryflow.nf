@@ -4,20 +4,21 @@
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
 
-include {   MULTIQC                 } from '../modules/nf-core/multiqc/main'
-include {   paramsSummaryMap        } from 'plugin/nf-validation'
-include {   paramsSummaryMultiqc    } from '../subworkflows/nf-core/utils_nfcore_pipeline'
+// include {   MULTIQC                 } from '../modules/nf-core/multiqc/main'
+// include {   paramsSummaryMap        } from 'plugin/nf-validation'
+// include {   paramsSummaryMultiqc    } from '../subworkflows/nf-core/utils_nfcore_pipeline'
 include {   softwareVersionsToYAML  } from '../subworkflows/nf-core/utils_nfcore_pipeline'
-include {   methodsDescriptionText  } from '../subworkflows/local/utils_nfcore_tractoflow_pipeline'
+// include {   methodsDescriptionText  } from '../subworkflows/local/utils_nfcore_tractoflow_pipeline'
 
 // PREPROCESSING
 include {   PREPROC_DWI                                               } from '../subworkflows/nf-scil/preproc_dwi/main'
-include {   PREPROC_T1                                                } from '../subworkflows/nf-scil/preproc_t1/main'
-include {   RECONST_DTIMETRICS as REGISTRATION_FA                     } from '../modules/nf-scil/reconst/dtimetrics/main'
-include {   REGISTRATION_CONVERT as WARP_CONVERT                      } from '../modules/nf-scil/registration/convert/main'
+include {   PREPROC_T1                                                } from '../subworkflows/nf-neuro/preproc_t1/main'
+include {   REGISTRATION as T1_REGISTRATION                           } from '../subworkflows/nf-neuro/registration/main'
+include {   RECONST_DTIMETRICS  as REGISTRATION_FA                    } from '../modules/nf-scil/reconst/dtimetrics/main'
+include {   REGISTRATION_CONVERT as WARP_CONVERT                      } from '../modules/nf-neuro/registration/convert/main'
 include {   REGISTRATION_ANTSAPPLYTRANSFORMS as TRANSFORM_WMPARC      } from '../modules/nf-scil/registration/antsapplytransforms/main'
 include {   REGISTRATION_ANTSAPPLYTRANSFORMS as TRANSFORM_APARC_ASEG  } from '../modules/nf-scil/registration/antsapplytransforms/main'
-include {   ANATOMICAL_SEGMENTATION                                   } from '../subworkflows/nf-scil/anatomical_segmentation/main'
+include {   ANATOMICAL_SEGMENTATION                                   } from '../subworkflows/nf-neuro/anatomical_segmentation/main'
 
 // RECONSTRUCTION
 include {   RECONST_FRF        } from '../modules/nf-scil/reconst/frf/main'
@@ -26,11 +27,11 @@ include {   RECONST_DTIMETRICS } from '../modules/nf-scil/reconst/dtimetrics/mai
 include {   RECONST_FODF       } from '../modules/nf-scil/reconst/fodf/main'
 
 // TRACKING
-include { TRACKING_PFTTRACKING } from '../modules/nf-scil/tracking/pfttracking/main'
-include { TRACKING_LOCALTRACKING } from '../modules/nf-scil/tracking/localtracking/main'
+include {   TRACKING_PFTTRACKING   } from '../modules/nf-scil/tracking/pfttracking/main'
+include {   TRACKING_LOCALTRACKING } from '../modules/nf-scil/tracking/localtracking/main'
 
 // BUNDLESEG
-include { BUNDLE_SEG } from '../subworkflows/nf-scil/bundle_seg/main'
+include { BUNDLE_SEG } from '../subworkflows/nf-neuro/bundle_seg/main'
 
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -46,7 +47,7 @@ workflow SURGERYFLOW {
     main:
 
     ch_versions = Channel.empty()
-    ch_multiqc_files = Channel.empty()
+    // ch_multiqc_files = Channel.empty()
     ch_topup_config = Channel.empty()
 
     /* Load topup config if provided */
@@ -60,12 +61,18 @@ workflow SURGERYFLOW {
     }
 
     /* Load bet template */
-    ch_bet_template = params.run_surgery ? Channel.empty() : Channel.fromPath(params.t1_bet_template_t1, checkIfExists: true)
-    ch_bet_probability = params.run_surgery ? Channel.empty() : Channel.fromPath(params.t1_bet_template_probability_map, checkIfExists: true)
+    ch_bet_template = params.run_synthbet ? Channel.empty() : Channel.fromPath(params.t1_bet_template_t1, checkIfExists: true)
+    ch_bet_probability = params.run_synthbet ? Channel.empty() : Channel.fromPath(params.t1_bet_template_probability_map, checkIfExists: true)
+
+    /* Load atlas directory. If not provided, will automatically fetch the atlas archives. */
+    ch_atlas_directory = params.atlas_directory ? Channel.fromPath(params.atlas_directory) : Channel.empty() //TODO: one or two brackets?
+
+    /* Load freesurfer license */
+    ch_fs_license = params.fs_license ? Channel.fromPath(params.fs_license, checkIfExists:true) : Channel.empty()
 
     /* Unpack inputs */
     ch_inputs = ch_samplesheet
-        .multiMap{ meta, dwi, bval, bvec, sbref, rev_dwi, rev_bval, rev_bvec, rev_sbref, t1, wmparc, aparc_aseg ->
+        .multiMap{ meta, dwi, bval, bvec, sbref, rev_dwi, rev_bval, rev_bvec, rev_sbref, t1, wmparc, aparc_aseg, lesion_mask ->
             dwi: [meta, dwi, bval, bvec]
             sbref: [meta, sbref]
             rev_dwi: [meta, rev_dwi, rev_bval, rev_bvec]
@@ -97,6 +104,7 @@ workflow SURGERYFLOW {
         ch_t1_meta.combine(ch_bet_probability),
         Channel.empty(),
         Channel.empty(),
+        Channel.empty(),
         Channel.empty()
     )
 
@@ -111,16 +119,28 @@ workflow SURGERYFLOW {
     REGISTRATION_FA( ch_registration_fa )
 
     //
+    // SUBWORKFLOW: Run REGISTRATION
+    //
+    T1_REGISTRATION(
+        PREPROC_T1.out.t1_final,
+        PREPROC_DWI.out.b0,
+        REGISTRATION_FA.out.fa,
+        PREPROC_T1.out.mask_final,
+        [],
+        []
+    )
+
+    //
     // MODULE: Run REGISTRATION_CONVERT
     //
 
-    WARP_CONVERT(
-        [], // Skip affine conversion
-        T1_REGISTRATION.out.transfo_image
-        PREPROC_T1.out.t1_final,
-        [], // Target image
-        []  // fs_license
-    )
+    ch_convert = T1_REGISTRATION.out.transfo_image
+        .join(PREPROC_T1.out.t1_final)
+        .join(PREPROC_DWI.out.b0)
+        .join(ch_fs_license)
+        .map{ it[0] + [[]] + it[1..2] + [ it[3] ?: [] ] + [ it[4] ?: [] ] }
+
+    WARP_CONVERT( ch_convert )
 
     /* SEGMENTATION */
 
@@ -131,7 +151,7 @@ workflow SURGERYFLOW {
         ch_inputs.wmparc
             .filter{ it[1] }
             .join(PREPROC_DWI.out.b0)
-            .join(REGISTRATION_CONVERT.out.deform_transform)
+            .join(WARP_CONVERT.out.deform_transform)
             .map{ it[0..2] + [it[3..-1]] }
     )
 
@@ -142,7 +162,7 @@ workflow SURGERYFLOW {
         ch_inputs.aparc_aseg
             .filter{ it[1] }
             .join(PREPROC_DWI.out.b0)
-            .join(REGISTRATION_CONVERT.out.deform_transform)
+            .join(WARP_CONVERT.out.deform_transform)
             .map{ it[0..2] + [it[3..-1]] }
     )
 
@@ -152,7 +172,9 @@ workflow SURGERYFLOW {
     ANATOMICAL_SEGMENTATION(
         T1_REGISTRATION.out.image_warped,
         TRANSFORM_WMPARC.out.warpedimage
-            .join(TRANSFORM_APARC_ASEG.out.warpedimage)
+            .join(TRANSFORM_APARC_ASEG.out.warpedimage),
+            ch_inputs.lesion_mask,
+            ch_fs_license
     )
 
     /* RECONSTRUCTION */
@@ -217,21 +239,17 @@ workflow SURGERYFLOW {
 
     /* BUNDLE SEGMENTATION */
 
-    /* BundleSeg input prep */
-
-    /* Load atlas directory. If not provided, will automatically fetch the atlas archives. */
-    ch_atlas_directory = params.atlas_directory ? Channel.fromPath(params.atlas_directory) : [[]] //TODO: one or two brackets?
+    /* Tractogram input prep */
 
     ch_tractogram = TRACKING_PFTTRACKING.out.trk.mix(TRACKING_LOCALTRACKING.out.trk)
-    ch_bundle_seg = RECONST_DTIMETRICS.out.fa
-        .join(ch_tractogram)
-        .join(ch_atlas_directory)
 
     //
     // SUBWORKFLOW: Run BUNDLE_SEG
     //
 
-    BUNDLE_SEG( ch_bundle_seg )
+    BUNDLE_SEG( RECONST_DTIMETRICS.out.fa,
+        ch_tractogram,
+        ch_atlas_directory )
 
     //
     // Collate and save software versions
@@ -240,29 +258,31 @@ workflow SURGERYFLOW {
         .collectFile(storeDir: "${params.outdir}/pipeline_info", name: 'nf_core_pipeline_software_mqc_versions.yml', sort: true, newLine: true)
         .set { ch_collated_versions }
 
-    //
-    // MODULE: MultiQC
-    //
-    ch_multiqc_config                     = Channel.fromPath("$projectDir/assets/multiqc_config.yml", checkIfExists: true)
-    ch_multiqc_custom_config              = params.multiqc_config ? Channel.fromPath(params.multiqc_config, checkIfExists: true) : Channel.empty()
-    ch_multiqc_logo                       = params.multiqc_logo ? Channel.fromPath(params.multiqc_logo, checkIfExists: true) : Channel.empty()
-    summary_params                        = paramsSummaryMap(workflow, parameters_schema: "nextflow_schema.json")
-    ch_workflow_summary                   = Channel.value(paramsSummaryMultiqc(summary_params))
-    ch_multiqc_custom_methods_description = params.multiqc_methods_description ? file(params.multiqc_methods_description, checkIfExists: true) : file("$projectDir/assets/methods_description_template.yml", checkIfExists: true)
-    ch_methods_description                = Channel.value(methodsDescriptionText(ch_multiqc_custom_methods_description))
-    ch_multiqc_files                      = ch_multiqc_files.mix(ch_workflow_summary.collectFile(name: 'workflow_summary_mqc.yaml'))
-    ch_multiqc_files                      = ch_multiqc_files.mix(ch_collated_versions)
-    ch_multiqc_files                      = ch_multiqc_files.mix(ch_methods_description.collectFile(name: 'methods_description_mqc.yaml', sort: false))
+    // //
+    // // MODULE: MultiQC
+    // //
+    // ch_multiqc_config                     = Channel.fromPath("$projectDir/assets/multiqc_config.yml", checkIfExists: true)
+    // ch_multiqc_custom_config              = params.multiqc_config ? Channel.fromPath(params.multiqc_config, checkIfExists: true) : Channel.empty()
+    // ch_multiqc_logo                       = params.multiqc_logo ? Channel.fromPath(params.multiqc_logo, checkIfExists: true) : Channel.empty()
+    // summary_params                        = paramsSummaryMap(workflow, parameters_schema: "nextflow_schema.json")
+    // ch_workflow_summary                   = Channel.value(paramsSummaryMultiqc(summary_params))
+    // ch_multiqc_custom_methods_description = params.multiqc_methods_description ? file(params.multiqc_methods_description, checkIfExists: true) : file("$projectDir/assets/methods_description_template.yml", checkIfExists: true)
+    // ch_methods_description                = Channel.value(methodsDescriptionText(ch_multiqc_custom_methods_description))
+    // ch_multiqc_files                      = ch_multiqc_files.mix(ch_workflow_summary.collectFile(name: 'workflow_summary_mqc.yaml'))
+    // ch_multiqc_files                      = ch_multiqc_files.mix(ch_collated_versions)
+    // ch_multiqc_files                      = ch_multiqc_files.mix(ch_methods_description.collectFile(name: 'methods_description_mqc.yaml', sort: false))
 
-    MULTIQC (
-        ch_multiqc_files.collect(),
-        ch_multiqc_config.toList(),
-        ch_multiqc_custom_config.toList(),
-        ch_multiqc_logo.toList()
-    )
+    // MULTIQC (
+    //     ch_multiqc_files.collect(),
+    //     ch_multiqc_config.toList(),
+    //     ch_multiqc_custom_config.toList(),
+    //     ch_multiqc_logo.toList()
+    // )
 
     emit:
-    multiqc_report = MULTIQC.out.report.toList() // channel: /path/to/multiqc_report.html
+    bundles = BUNDLE_SEG.out.bundles              // channel: [ val(meta), [ bundles ] ]
+    t1_final = T1_REGISTRATION.out.image_warped            // channel: [ val(meta), [ image ] ]
+    // multiqc_report = MULTIQC.out.report.toList() // channel: /path/to/multiqc_report.html
     versions       = ch_versions                 // channel: [ path(versions.yml) ]
 }
 

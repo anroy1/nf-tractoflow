@@ -1,0 +1,228 @@
+{
+    "registration - easyreg": {
+        "content": [
+            "test_floating_registered.nii.gz",
+            "test_reference_registered.nii.gz",
+            "test_forward_field.nii.gz",
+            "test_backward_field.nii.gz",
+            "test_floating_segmentation.nii.gz:md5:header,d559b931014ef191f9af17abf1152a3c,data,85934f256bb314487d31e1405393f31f",
+            "test_reference_segmentation.nii.gz",
+            [
+                "versions.yml:md5,3f38c911476c605480c02e484fcf6e9f"
+            ]
+        ],
+        "meta": {
+            "nf-test": "0.9.0",
+            "nextflow": "24.04.4"
+        },
+        "timestamp": "2024-10-12T13:16:40.170919866"
+    },
+    "registration - antsRegistration": {
+        "content": [
+            {
+                "0": [
+                    [
+                        {
+                            "id": "test",
+                            "single_end": false
+                        },
+                        "test__t1_warped.nii.gz:md5,ff651c76f4ea493de0a06a202e9f9fb2"
+                    ]
+                ],
+                "1": [
+                    
+                ],
+                "2": [
+                    [
+                        {
+                            "id": "test",
+                            "single_end": false
+                        },
+                        "test__output1Warp.nii.gz:md5,f896e4fef21f26c84bf834afd7fb5d55",
+                        "test__output0GenericAffine.mat:md5,043decee0d131e79a802e3dcc61c22f0"
+                    ]
+                ],
+                "3": [
+                    [
+                        {
+                            "id": "test",
+                            "single_end": false
+                        },
+                        "test__output0GenericAffine.mat:md5,043decee0d131e79a802e3dcc61c22f0",
+                        "test__output1InverseWarp.nii.gz:md5,62d6287e60dd36ffd477e71061f23077"
+                    ]
+                ],
+                "4": [
+                    
+                ],
+                "5": [
+                    
+                ],
+                "6": [
+                    "versions.yml:md5,9c255f4c751382be7bf6fe6ffb0d635d"
+                ],
+                "image_warped": [
+                    [
+                        {
+                            "id": "test",
+                            "single_end": false
+                        },
+                        "test__t1_warped.nii.gz:md5,ff651c76f4ea493de0a06a202e9f9fb2"
+                    ]
+                ],
+                "ref_segmentation": [
+                    
+                ],
+                "ref_warped": [
+                    
+                ],
+                "segmentation": [
+                    
+                ],
+                "transfo_image": [
+                    [
+                        {
+                            "id": "test",
+                            "single_end": false
+                        },
+                        "test__output1Warp.nii.gz:md5,f896e4fef21f26c84bf834afd7fb5d55",
+                        "test__output0GenericAffine.mat:md5,043decee0d131e79a802e3dcc61c22f0"
+                    ]
+                ],
+                "transfo_trk": [
+                    [
+                        {
+                            "id": "test",
+                            "single_end": false
+                        },
+                        "test__output0GenericAffine.mat:md5,043decee0d131e79a802e3dcc61c22f0",
+                        "test__output1InverseWarp.nii.gz:md5,62d6287e60dd36ffd477e71061f23077"
+                    ]
+                ],
+                "versions": [
+                    "versions.yml:md5,9c255f4c751382be7bf6fe6ffb0d635d"
+                ]
+            }
+        ],
+        "meta": {
+            "nf-test": "0.9.0",
+            "nextflow": "24.04.4"
+        },
+        "timestamp": "2024-10-12T13:09:01.767340059"
+    },
+    "registration - synthmorph": {
+        "content": [
+            "test__output_warped.nii.gz:md5:header,6900f7dee20cda3a0b1f6bceca3c95ec,data,53c5f1c2329090cd13384fad0fab3a97",
+            "test__deform_warp.nii.gz:md5:header,a8883dd1ac66bece29c4c89068c97d65,data,062d2e220a3b2d21fbaa67d2e2dd5cf3",
+            [
+                "versions.yml:md5,ba070bfc14176dce912fcc24ed19d2cb"
+            ]
+        ],
+        "meta": {
+            "nf-test": "0.9.0",
+            "nextflow": "24.04.4"
+        },
+        "timestamp": "2024-10-16T01:38:55.283386298"
+    },
+    "registration - SyNQuick": {
+        "content": [
+            {
+                "0": [
+                    [
+                        {
+                            "id": "test",
+                            "single_end": false
+                        },
+                        "test__warped.nii.gz:md5,88442ab57066e1fb1e03f90d73cdfc42"
+                    ]
+                ],
+                "1": [
+                    
+                ],
+                "2": [
+                    [
+                        {
+                            "id": "test",
+                            "single_end": false
+                        },
+                        [
+                            "test__output0Warp.nii.gz:md5,61436a721b29633474255640b5e44f7f",
+                            "test__output1GenericAffine.mat:md5,3946e4d33c15911a9a1d72374fdbe4df"
+                        ]
+                    ]
+                ],
+                "3": [
+                    [
+                        {
+                            "id": "test",
+                            "single_end": false
+                        },
+                        [
+                            "test__output0InverseAffine.mat:md5,b30458b37b728d8ce97890b391ad9df9",
+                            "test__output1InverseWarp.nii.gz:md5,278d1774561435ff0a3ec239872b74e5"
+                        ]
+                    ]
+                ],
+                "4": [
+                    
+                ],
+                "5": [
+                    
+                ],
+                "6": [
+                    "versions.yml:md5,96376b8bc28640eef565e7f1e258dbb2"
+                ],
+                "image_warped": [
+                    [
+                        {
+                            "id": "test",
+                            "single_end": false
+                        },
+                        "test__warped.nii.gz:md5,88442ab57066e1fb1e03f90d73cdfc42"
+                    ]
+                ],
+                "ref_segmentation": [
+                    
+                ],
+                "ref_warped": [
+                    
+                ],
+                "segmentation": [
+                    
+                ],
+                "transfo_image": [
+                    [
+                        {
+                            "id": "test",
+                            "single_end": false
+                        },
+                        [
+                            "test__output0Warp.nii.gz:md5,61436a721b29633474255640b5e44f7f",
+                            "test__output1GenericAffine.mat:md5,3946e4d33c15911a9a1d72374fdbe4df"
+                        ]
+                    ]
+                ],
+                "transfo_trk": [
+                    [
+                        {
+                            "id": "test",
+                            "single_end": false
+                        },
+                        [
+                            "test__output0InverseAffine.mat:md5,b30458b37b728d8ce97890b391ad9df9",
+                            "test__output1InverseWarp.nii.gz:md5,278d1774561435ff0a3ec239872b74e5"
+                        ]
+                    ]
+                ],
+                "versions": [
+                    "versions.yml:md5,96376b8bc28640eef565e7f1e258dbb2"
+                ]
+            }
+        ],
+        "meta": {
+            "nf-test": "0.9.0",
+            "nextflow": "24.04.4"
+        },
+        "timestamp": "2024-10-12T13:09:11.665469033"
+    }
+}
