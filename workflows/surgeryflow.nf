@@ -11,7 +11,7 @@ include {   softwareVersionsToYAML  } from '../subworkflows/nf-core/utils_nfcore
 // include {   methodsDescriptionText  } from '../subworkflows/local/utils_nfcore_tractoflow_pipeline'
 
 // PREPROCESSING
-include {   PREPROC_DWI                                               } from '../subworkflows/nf-scil/preproc_dwi/main'
+include {   PREPROC_DWI                                               } from '../subworkflows/nf-neuro/preproc_dwi/main'
 include {   PREPROC_T1                                                } from '../subworkflows/nf-neuro/preproc_t1/main'
 include {   REGISTRATION as T1_REGISTRATION                           } from '../subworkflows/nf-neuro/registration/main'
 include {   RECONST_DTIMETRICS  as REGISTRATION_FA                    } from '../modules/nf-scil/reconst/dtimetrics/main'
@@ -65,7 +65,7 @@ workflow SURGERYFLOW {
     ch_bet_probability = params.run_synthbet ? Channel.empty() : Channel.fromPath(params.t1_bet_template_probability_map, checkIfExists: true)
 
     /* Load atlas directory. If not provided, will automatically fetch the atlas archives. */
-    ch_atlas_directory = params.atlas_directory ? Channel.fromPath(params.atlas_directory) : Channel.empty() //TODO: one or two brackets?
+    ch_atlas_directory = params.atlas_directory ? Channel.fromPath(params.atlas_directory) : Channel.empty()
 
     /* Load freesurfer license */
     ch_fs_license = params.fs_license ? Channel.fromPath(params.fs_license, checkIfExists:true) : Channel.empty()
@@ -89,8 +89,8 @@ workflow SURGERYFLOW {
     // SUBWORKFLOW: Run PREPROC_DWI
     //
     PREPROC_DWI(
-        ch_inputs.dwi, ch_inputs.rev_dwi,
-        ch_inputs.sbref, ch_inputs.rev_sbref,
+        ch_inputs.dwi, ch_inputs.rev_dwi.filter{ it[1] },
+        ch_inputs.sbref.filter{ it[1] }, ch_inputs.rev_sbref.filter{ it[1] },
         ch_topup_config
     )
 
@@ -126,8 +126,8 @@ workflow SURGERYFLOW {
         PREPROC_DWI.out.b0,
         REGISTRATION_FA.out.fa,
         PREPROC_T1.out.mask_final,
-        [],
-        []
+        Channel.empty(),
+        Channel.empty()
     )
 
     //
@@ -170,9 +170,9 @@ workflow SURGERYFLOW {
     // SUBWORKFLOW: Run ANATOMICAL_SEGMENTATION
     //
     ANATOMICAL_SEGMENTATION(
-        T1_REGISTRATION.out.image_warped,
+        T1_REGISTRATION.out.image_warped.view(),
         TRANSFORM_WMPARC.out.warpedimage
-            .join(TRANSFORM_APARC_ASEG.out.warpedimage),
+            .join(TRANSFORM_APARC_ASEG.out.warpedimage).view(),
             ch_inputs.lesion_mask,
             ch_fs_license
     )
@@ -199,7 +199,7 @@ workflow SURGERYFLOW {
 
     RECONST_FRF( ch_reconst_frf )
 
-    /* Run fiber response aeraging over subjects */
+    /* Run fiber response averaging over subjects */
     ch_fiber_response = RECONST_FRF.out.frf
     if ( params.dwi_fodf_fit_use_average_frf ) {
         RECONST_MEANFRF( RECONST_FRF.out.frf.map{ it[1] }.flatten() )
