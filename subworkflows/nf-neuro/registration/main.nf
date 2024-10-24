@@ -52,7 +52,7 @@ workflow REGISTRATION {
 
         else if ( params.run_synthmorph ) {
             // ** Set up input channel ** //
-            ch_register = ch_ref.join(ch_image)
+            ch_register = ch_image.join(ch_ref)
 
             // ** Registration using synthmorph ** //
             REGISTRATION_SYNTHREGISTRATION ( ch_register )
@@ -61,6 +61,7 @@ workflow REGISTRATION {
             // ** Setting outputs ** //
             image_warped = REGISTRATION_SYNTHREGISTRATION.out.warped_image
             transfo_image = REGISTRATION_SYNTHREGISTRATION.out.deform_transform
+                .join(REGISTRATION_SYNTHREGISTRATION.out.affine_transform)
             transfo_trk = Channel.empty()
             ref_warped = Channel.empty()
             out_segmentation = Channel.empty()

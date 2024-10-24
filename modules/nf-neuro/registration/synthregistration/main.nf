@@ -1,9 +1,9 @@
 process REGISTRATION_SYNTHREGISTRATION {
     tag "$meta.id"
-    label 'process_single'
+    label 'process_medium'
 
     container "freesurfer/synthmorph:3"
-    containerOptions "--entrypoint ''"
+    containerOptions "--entrypoint '' --env PYTHONPATH='/freesurfer/env/lib/python3.11/site-packages'"
 
     input:
     tuple val(meta), path(moving), path(fixed)

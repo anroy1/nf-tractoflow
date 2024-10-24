@@ -14,7 +14,7 @@ include {   softwareVersionsToYAML  } from '../subworkflows/nf-core/utils_nfcore
 include {   PREPROC_DWI                                               } from '../subworkflows/nf-neuro/preproc_dwi/main'
 include {   PREPROC_T1                                                } from '../subworkflows/nf-neuro/preproc_t1/main'
 include {   REGISTRATION as T1_REGISTRATION                           } from '../subworkflows/nf-neuro/registration/main'
-include {   RECONST_DTIMETRICS  as REGISTRATION_FA                    } from '../modules/nf-scil/reconst/dtimetrics/main'
+// include {   RECONST_DTIMETRICS  as REGISTRATION_FA                    } from '../modules/nf-scil/reconst/dtimetrics/main'
 include {   REGISTRATION_CONVERT as WARP_CONVERT                      } from '../modules/nf-neuro/registration/convert/main'
 include {   REGISTRATION_ANTSAPPLYTRANSFORMS as TRANSFORM_WMPARC      } from '../modules/nf-scil/registration/antsapplytransforms/main'
 include {   REGISTRATION_ANTSAPPLYTRANSFORMS as TRANSFORM_APARC_ASEG  } from '../modules/nf-scil/registration/antsapplytransforms/main'
@@ -108,74 +108,16 @@ workflow SURGERYFLOW {
         Channel.empty()
     )
 
-    //
-    // MODULE: Run RECONST/DTIMETRICS (REGISTRATION_FA)
-    //
-    ch_registration_fa = PREPROC_DWI.out.dwi_resample
-        .join(PREPROC_DWI.out.bval)
-        .join(PREPROC_DWI.out.bvec)
-        .join(PREPROC_DWI.out.b0_mask)
+    //TODO: Probably to delete. Feed fa from DTIMETRICS instead
+    // //
+    // // MODULE: Run RECONST/DTIMETRICS (REGISTRATION_FA)
+    // //
+    // ch_registration_fa = PREPROC_DWI.out.dwi_resample
+    //     .join(PREPROC_DWI.out.bval)
+    //     .join(PREPROC_DWI.out.bvec)
+    //     .join(PREPROC_DWI.out.b0_mask)
 
-    REGISTRATION_FA( ch_registration_fa )
-
-    //
-    // SUBWORKFLOW: Run REGISTRATION
-    //
-    T1_REGISTRATION(
-        PREPROC_T1.out.t1_final,
-        PREPROC_DWI.out.b0,
-        REGISTRATION_FA.out.fa,
-        PREPROC_T1.out.mask_final,
-        Channel.empty(),
-        Channel.empty()
-    )
-
-    //
-    // MODULE: Run REGISTRATION_CONVERT
-    //
-
-    ch_convert = T1_REGISTRATION.out.transfo_image
-        .join(PREPROC_T1.out.t1_final)
-        .join(PREPROC_DWI.out.b0)
-        .join(ch_fs_license)
-        .map{ it[0] + [[]] + it[1..2] + [ it[3] ?: [] ] + [ it[4] ?: [] ] }
-
-    WARP_CONVERT( ch_convert )
-
-    /* SEGMENTATION */
-
-    //
-    // MODULE: Run REGISTRATION_ANTSAPPLYTRANSFORMS (TRANSFORM_WMPARC)
-    //
-    TRANSFORM_WMPARC(
-        ch_inputs.wmparc
-            .filter{ it[1] }
-            .join(PREPROC_DWI.out.b0)
-            .join(WARP_CONVERT.out.deform_transform)
-            .map{ it[0..2] + [it[3..-1]] }
-    )
-
-    //
-    // MODULE: Run REGISTRATION_ANTSAPPLYTRANSFORMS (TRANSFORM_APARC_ASEG)
-    //
-    TRANSFORM_APARC_ASEG(
-        ch_inputs.aparc_aseg
-            .filter{ it[1] }
-            .join(PREPROC_DWI.out.b0)
-            .join(WARP_CONVERT.out.deform_transform)
-            .map{ it[0..2] + [it[3..-1]] }
-    )
-
-    //
-    // SUBWORKFLOW: Run ANATOMICAL_SEGMENTATION
-    //
-    ANATOMICAL_SEGMENTATION(
-        T1_REGISTRATION.out.image_warped.view(),
-        TRANSFORM_WMPARC.out.warpedimage
-            .join(TRANSFORM_APARC_ASEG.out.warpedimage).view(),
-            ch_inputs.lesion_mask,
-            ch_fs_license
-    )
+    // REGISTRATION_FA( ch_registration_fa )
 
     /* RECONSTRUCTION */
 
@@ -218,6 +160,67 @@ workflow SURGERYFLOW {
         .join(RECONST_DTIMETRICS.out.md)
         .join(ch_fiber_response)
     RECONST_FODF( ch_reconst_fodf )
+
+
+    //
+    // SUBWORKFLOW: Run REGISTRATION
+    //
+    T1_REGISTRATION(
+        PREPROC_T1.out.t1_final,
+        PREPROC_DWI.out.b0,
+        RECONST_DTIMETRICS.out.fa,
+        PREPROC_T1.out.mask_final,
+        Channel.empty(),
+        Channel.empty()
+    )
+
+    //
+    // MODULE: Run REGISTRATION_CONVERT
+    //
+
+    ch_convert = T1_REGISTRATION.out.transfo_image
+        .map{ it[0] + it[2] + it[1] }
+        .join(PREPROC_T1.out.t1_final)
+        .join(PREPROC_DWI.out.b0)
+        .join(ch_fs_license)
+        .map{ it[0..2] + [ it[3] ?: [] ] + [ it[4] ?: [] ] }
+
+    WARP_CONVERT( ch_convert )
+
+    /* SEGMENTATION */
+
+    //
+    // MODULE: Run REGISTRATION_ANTSAPPLYTRANSFORMS (TRANSFORM_WMPARC)
+    //
+    TRANSFORM_WMPARC(
+        ch_inputs.wmparc
+            .filter{ it[1] }
+            .join(PREPROC_DWI.out.b0)
+            .join(WARP_CONVERT.out.deform_transform)
+            .map{ it[0..2] + [it[3..-1]] }
+    )
+
+    //
+    // MODULE: Run REGISTRATION_ANTSAPPLYTRANSFORMS (TRANSFORM_APARC_ASEG)
+    //
+    TRANSFORM_APARC_ASEG(
+        ch_inputs.aparc_aseg
+            .filter{ it[1] }
+            .join(PREPROC_DWI.out.b0)
+            .join(WARP_CONVERT.out.deform_transform)
+            .map{ it[0..2] + [it[3..-1]] }
+    )
+
+    //
+    // SUBWORKFLOW: Run ANATOMICAL_SEGMENTATION
+    //
+    ANATOMICAL_SEGMENTATION(
+        T1_REGISTRATION.out.image_warped.view(),
+        TRANSFORM_WMPARC.out.warpedimage
+            .join(TRANSFORM_APARC_ASEG.out.warpedimage).view(),
+            ch_inputs.lesion_mask,
+            ch_fs_license
+    )
 
     //
     // MODULE: Run TRACKING/PFTTRACKING

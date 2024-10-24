@@ -11,7 +11,7 @@ process IMAGE_RESAMPLE {
     tuple val(meta), path(image), path(ref) /* optional, value = [] */
 
     output:
-    tuple val(meta), path("*_resampled.nii.gz"), emit: image
+    tuple val(meta), path("*_*_resampled.nii.gz"), emit: image
     path "versions.yml"           , emit: versions
 
     when:
@@ -19,7 +19,7 @@ process IMAGE_RESAMPLE {
 
     script:
     def prefix = task.ext.prefix ?: "${meta.id}"
-    def suffix = task.ext.first_suffix ? "${task.ext.first_suffix}_resampled" : "resampled"
+    def suffix = task.ext.first_suffix ? "${task.ext.first_suffix}" : ""
     def reference = "$ref" ? "--ref $ref" : ""
     def voxel_size = task.ext.voxel_size ? "--voxel_size " + task.ext.voxel_size : ""
     def volume_size = task.ext.volume_size ? "--volume_size " + task.ext.volume_size : ""
@@ -33,7 +33,7 @@ process IMAGE_RESAMPLE {
     export OMP_NUM_THREADS=1
     export OPENBLAS_NUM_THREADS=1
 
-    scil_resample_volume.py $image ${prefix}_${suffix}.nii.gz \
+    scil_resample_volume.py $image ${prefix}_${suffix}_resampled.nii.gz \
         $voxel_size $volume_size $reference $iso_min \
         $f $enforce_dimensions $interp
 
