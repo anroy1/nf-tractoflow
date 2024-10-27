@@ -15,7 +15,7 @@ include {   PREPROC_DWI                                               } from '..
 include {   PREPROC_T1                                                } from '../subworkflows/nf-neuro/preproc_t1/main'
 include {   REGISTRATION as T1_REGISTRATION                           } from '../subworkflows/nf-neuro/registration/main'
 // include {   RECONST_DTIMETRICS  as REGISTRATION_FA                    } from '../modules/nf-scil/reconst/dtimetrics/main'
-include {   REGISTRATION_CONVERT as WARP_CONVERT                      } from '../modules/nf-neuro/registration/convert/main'
+include {   REGISTRATION_CONVERT                                      } from '../modules/nf-neuro/registration/convert/main'
 include {   REGISTRATION_ANTSAPPLYTRANSFORMS as TRANSFORM_WMPARC      } from '../modules/nf-scil/registration/antsapplytransforms/main'
 include {   REGISTRATION_ANTSAPPLYTRANSFORMS as TRANSFORM_APARC_ASEG  } from '../modules/nf-scil/registration/antsapplytransforms/main'
 include {   ANATOMICAL_SEGMENTATION                                   } from '../subworkflows/nf-neuro/anatomical_segmentation/main'
@@ -65,10 +65,10 @@ workflow SURGERYFLOW {
     ch_bet_probability = params.run_synthbet ? Channel.empty() : Channel.fromPath(params.t1_bet_template_probability_map, checkIfExists: true)
 
     /* Load atlas directory. If not provided, will automatically fetch the atlas archives. */
-    ch_atlas_directory = params.atlas_directory ? Channel.fromPath(params.atlas_directory) : Channel.empty()
+    ch_atlas_directory = params.atlas_directory ? Channel.fromPath(params.atlas_directory, checkIfExists: true) : Channel.empty()
 
     /* Load freesurfer license */
-    ch_fs_license = params.fs_license ? Channel.fromPath(params.fs_license, checkIfExists:true) : Channel.empty()
+    ch_fs_license = params.fs_license ? Channel.fromPath(params.fs_license, checkIfExists: true) : Channel.empty()
 
     /* Unpack inputs */
     ch_inputs = ch_samplesheet
@@ -179,13 +179,12 @@ workflow SURGERYFLOW {
     //
 
     ch_convert = T1_REGISTRATION.out.transfo_image
-        .map{ it[0] + it[2] + it[1] }
         .join(PREPROC_T1.out.t1_final)
-        .join(PREPROC_DWI.out.b0)
-        .join(ch_fs_license)
-        .map{ it[0..2] + [ it[3] ?: [] ] + [ it[4] ?: [] ] }
+        .join(PREPROC_DWI.out.b0, remainder: true)
+        .map{ it[0..3] + [it[4] ?: []] }
+        .combine(ch_fs_license)
 
-    WARP_CONVERT( ch_convert )
+    REGISTRATION_CONVERT( ch_convert )
 
     /* SEGMENTATION */
 
@@ -196,7 +195,7 @@ workflow SURGERYFLOW {
         ch_inputs.wmparc
             .filter{ it[1] }
             .join(PREPROC_DWI.out.b0)
-            .join(WARP_CONVERT.out.deform_transform)
+            .join(REGISTRATION_CONVERT.out.deform_transform)
             .map{ it[0..2] + [it[3..-1]] }
     )
 
@@ -207,7 +206,7 @@ workflow SURGERYFLOW {
         ch_inputs.aparc_aseg
             .filter{ it[1] }
             .join(PREPROC_DWI.out.b0)
-            .join(WARP_CONVERT.out.deform_transform)
+            .join(REGISTRATION_CONVERT.out.deform_transform)
             .map{ it[0..2] + [it[3..-1]] }
     )
 
@@ -215,9 +214,9 @@ workflow SURGERYFLOW {
     // SUBWORKFLOW: Run ANATOMICAL_SEGMENTATION
     //
     ANATOMICAL_SEGMENTATION(
-        T1_REGISTRATION.out.image_warped.view(),
-        TRANSFORM_WMPARC.out.warpedimage
-            .join(TRANSFORM_APARC_ASEG.out.warpedimage).view(),
+        T1_REGISTRATION.out.image_warped,
+        TRANSFORM_APARC_ASEG.out.warpedimage
+            .join(TRANSFORM_WMPARC.out.warpedimage),
             ch_inputs.lesion_mask,
             ch_fs_license
     )
@@ -245,6 +244,10 @@ workflow SURGERYFLOW {
     /* Tractogram input prep */
 
     ch_tractogram = TRACKING_PFTTRACKING.out.trk.mix(TRACKING_LOCALTRACKING.out.trk)
+
+    ch_tractogram.view()
+    RECONST_DTIMETRICS.out.fa.view()
+    // ch_atlas_directory.view()
 
     //
     // SUBWORKFLOW: Run BUNDLE_SEG

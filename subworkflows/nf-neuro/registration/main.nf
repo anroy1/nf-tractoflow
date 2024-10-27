@@ -60,8 +60,7 @@ workflow REGISTRATION {
 
             // ** Setting outputs ** //
             image_warped = REGISTRATION_SYNTHREGISTRATION.out.warped_image
-            transfo_image = REGISTRATION_SYNTHREGISTRATION.out.deform_transform
-                .join(REGISTRATION_SYNTHREGISTRATION.out.affine_transform)
+            transfo_image = REGISTRATION_SYNTHREGISTRATION.out.transfo_image
             transfo_trk = Channel.empty()
             ref_warped = Channel.empty()
             out_segmentation = Channel.empty()

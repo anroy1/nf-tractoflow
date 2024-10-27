@@ -60,9 +60,9 @@ workflow BUNDLE_SEG {
 
         // ** Setting up Atlas reference channels. ** //
         if ( atlas_directory ) {
-            atlas_anat = Channel.fromPath("$atlas_directory/*.{nii,nii.gz}")
-            atlas_config = Channel.fromPath("$atlas_directory/*.json")
-            atlas_directory = Channel.fromPath("$atlas_directory/atlas/")
+            atlas_anat = Channel.fromPath("$atlas_directory/atlas/*.{nii,nii.gz}")
+            atlas_config = Channel.fromPath("$atlas_directory/config/config_fss_1.json")
+            atlas_directory = Channel.fromPath("$atlas_directory/atlas/atlas/pop_average/")
         }
         else {
             fetch_bundleseg_atlas(  "https://zenodo.org/records/10103446/files/atlas.zip?download=1",
@@ -72,6 +72,12 @@ workflow BUNDLE_SEG {
             atlas_config = Channel.fromPath("$workflow.workDir/config/config_fss_1.json")
             atlas_directory = Channel.fromPath("$workflow.workDir/atlas/atlas/")
         }
+
+        atlas_anat.view()
+        atlas_config.view()
+        atlas_directory.view()
+        ch_fa.view()
+        ch_tractogram.view()
 
         // ** Register the atlas to subject's space. Set up atlas file as moving image ** //
         // ** and subject anat as fixed image.                                         ** //

@@ -76,8 +76,8 @@
                         "installed_by": ["bundle_seg", "registration"]
                     },
                     "registration/convert": {
-                        "branch": "dev",
-                        "git_sha": "63a6ccf1628cff55e129d8e1ab71b4f406389d9b",
+                        "branch": "fix-convert",
+                        "git_sha": "dcdc6b0bde58e07bbdaf0dccd872d8e8b355cd50",
                         "installed_by": ["modules"]
                     },
                     "registration/easyreg": {
@@ -86,9 +86,9 @@
                         "installed_by": ["registration"]
                     },
                     "registration/synthregistration": {
-                        "branch": "dev",
-                        "git_sha": "58d8565a6db103024e62870fec6376f71c5b28db",
-                        "installed_by": ["registration"]
+                        "branch": "fix-synthregistration",
+                        "git_sha": "31395fe4268b8aa1cb032a931795745982e30223",
+                        "installed_by": ["modules", "registration"]
                     },
                     "segmentation/fastseg": {
                         "branch": "dev",

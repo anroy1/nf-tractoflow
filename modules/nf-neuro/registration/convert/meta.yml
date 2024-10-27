@@ -19,15 +19,15 @@ input:
         Groovy Map containing sample information
         e.g. `[ id:'test', single_end:false ]`
 
-  - affine:
-      type: file
-      description: Affine transform to convert. Default usage expects Freesurfer .lta format from mri_synthmorph
-      pattern: "*.{lta,txt,xfm,dat}"
-
   - deform:
       type: file
       description: Deform transform to convert. Default usage expects Freesurfer .mgz format from mri_synthmorph
       pattern: "*.{nii,nii.gz,mgz,m3z}"
+
+  - affine:
+      type: file
+      description: Optional affine transform to convert. Default usage expects Freesurfer .lta format from mri_synthmorph
+      pattern: "*.{lta,txt,xfm,dat}"
 
   - source:
       type: file

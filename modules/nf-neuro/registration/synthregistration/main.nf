@@ -1,6 +1,6 @@
 process REGISTRATION_SYNTHREGISTRATION {
     tag "$meta.id"
-    label 'process_medium'
+    label 'process_high'
 
     container "freesurfer/synthmorph:3"
     containerOptions "--entrypoint '' --env PYTHONPATH='/freesurfer/env/lib/python3.11/site-packages'"
@@ -9,9 +9,8 @@ process REGISTRATION_SYNTHREGISTRATION {
     tuple val(meta), path(moving), path(fixed)
 
     output:
-    tuple val(meta), path("*__output_warped.nii.gz"), emit: warped_image
-    tuple val(meta), path("*__affine_warp.lta"), emit: affine_transform
-    tuple val(meta), path("*__deform_warp.nii.gz"), emit: deform_transform
+    tuple val(meta), path("*__output_warped.nii.gz")                                , emit: warped_image
+    tuple val(meta), path("*__deform_warp.nii.gz"), path("*__affine_warp.lta")      , emit: transfo_image
     path "versions.yml"           , emit: versions
 
     when:
@@ -52,8 +51,8 @@ process REGISTRATION_SYNTHREGISTRATION {
     mri_synthmorph -h
 
     touch ${prefix}__output_warped.nii.gz
-    touch ${prefix}__affine_warp.lta
     touch ${prefix}__deform_warp.nii.gz
+    touch ${prefix}__affine_warp.lta
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
