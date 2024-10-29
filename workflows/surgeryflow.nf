@@ -65,8 +65,7 @@ workflow SURGERYFLOW {
     ch_bet_probability = params.run_synthbet ? Channel.empty() : Channel.fromPath(params.t1_bet_template_probability_map, checkIfExists: true)
 
     /* Load atlas directory. If not provided, will automatically fetch the atlas archives. */
-    ch_atlas_directory = params.atlas_directory ? Channel.fromPath(params.atlas_directory, checkIfExists: true) : Channel.empty()
-
+    ch_atlas_directory = Channel.fromPath(params.atlas_directory, checkIfExists: true)
     /* Load freesurfer license */
     ch_fs_license = params.fs_license ? Channel.fromPath(params.fs_license, checkIfExists: true) : Channel.empty()
 
@@ -245,17 +244,16 @@ workflow SURGERYFLOW {
 
     ch_tractogram = TRACKING_PFTTRACKING.out.trk.mix(TRACKING_LOCALTRACKING.out.trk)
 
-    ch_tractogram.view()
-    RECONST_DTIMETRICS.out.fa.view()
-    // ch_atlas_directory.view()
-
     //
     // SUBWORKFLOW: Run BUNDLE_SEG
     //
 
+    // RECONST_DTIMETRICS.out.fa.view()
+    // ch_tractogram.view()
+    // ch_atlas_directory.view()
+
     BUNDLE_SEG( RECONST_DTIMETRICS.out.fa,
-        ch_tractogram,
-        ch_atlas_directory )
+        ch_tractogram)
 
     //
     // Collate and save software versions

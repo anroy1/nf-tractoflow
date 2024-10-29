@@ -3,8 +3,8 @@ process BUNDLE_RECOGNIZE {
     label 'process_high'
 
     container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?
-        'https://scil.usherbrooke.ca/containers/scilus_2.0.0.sif':
-        'scilus/scilus:2.0.0' }"
+        'https://scil.usherbrooke.ca/containers/scilus_2.0.2.sif':
+        'scilus/scilus:2.0.2' }"
 
     input:
         tuple val(meta), path(tractograms), path(transform), path(config), path(directory)
@@ -26,6 +26,7 @@ process BUNDLE_RECOGNIZE {
     def outlier_alpha = task.ext.outlier_alpha ? "--alpha " + task.ext.outlier_alpha : ""
     """
     mkdir recobundles/
+    ls ${directory}/
     scil_tractogram_segment_bundles.py ${tractograms} ${config} ${directory}/ ${transform} --inverse --out_dir recobundles/ \
         -v DEBUG $minimal_vote_ratio $seed $rbx_processes
 
