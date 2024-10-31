@@ -25,6 +25,11 @@
                         "git_sha": "072538948dd406f6a88cdcf456dc3b132b66e5b6",
                         "installed_by": ["preproc_t1"]
                     },
+                    "bundle/densitymap": {
+                        "branch": "main",
+                        "git_sha": "070aaf9f13685bf394a5648dce2a580a8abfe7d0",
+                        "installed_by": ["modules"]
+                    },
                     "bundle/recognize": {
                         "branch": "dev",
                         "git_sha": "072538948dd406f6a88cdcf456dc3b132b66e5b6",
@@ -40,10 +45,20 @@
                         "git_sha": "072538948dd406f6a88cdcf456dc3b132b66e5b6",
                         "installed_by": ["preproc_t1"]
                     },
+                    "image/burnvoxels": {
+                        "branch": "main",
+                        "git_sha": "fa3a3d1047a56731268726455eeb95d21381e5fb",
+                        "installed_by": ["modules"]
+                    },
                     "image/resample": {
                         "branch": "tractoflow/subworkflow/preproc_dwi",
                         "git_sha": "072538948dd406f6a88cdcf456dc3b132b66e5b6",
                         "installed_by": ["preproc_dwi", "preproc_t1"]
+                    },
+                    "io/nii2dcm": {
+                        "branch": "main",
+                        "git_sha": "80b6ffcb1c25fe10d0eaf6ba2dac0746a4f16f1b",
+                        "installed_by": ["modules"]
                     },
                     "preproc/eddy": {
                         "branch": "tractoflow/subworkflow/topup_eddy",

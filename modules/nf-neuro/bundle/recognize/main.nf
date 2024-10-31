@@ -26,7 +26,6 @@ process BUNDLE_RECOGNIZE {
     def outlier_alpha = task.ext.outlier_alpha ? "--alpha " + task.ext.outlier_alpha : ""
     """
     mkdir recobundles/
-    ls ${directory}/
     scil_tractogram_segment_bundles.py ${tractograms} ${config} ${directory}/ ${transform} --inverse --out_dir recobundles/ \
         -v DEBUG $minimal_vote_ratio $seed $rbx_processes
 

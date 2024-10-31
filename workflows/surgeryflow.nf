@@ -14,7 +14,6 @@ include {   softwareVersionsToYAML  } from '../subworkflows/nf-core/utils_nfcore
 include {   PREPROC_DWI                                               } from '../subworkflows/nf-neuro/preproc_dwi/main'
 include {   PREPROC_T1                                                } from '../subworkflows/nf-neuro/preproc_t1/main'
 include {   REGISTRATION as T1_REGISTRATION                           } from '../subworkflows/nf-neuro/registration/main'
-// include {   RECONST_DTIMETRICS  as REGISTRATION_FA                    } from '../modules/nf-scil/reconst/dtimetrics/main'
 include {   REGISTRATION_CONVERT                                      } from '../modules/nf-neuro/registration/convert/main'
 include {   REGISTRATION_ANTSAPPLYTRANSFORMS as TRANSFORM_WMPARC      } from '../modules/nf-scil/registration/antsapplytransforms/main'
 include {   REGISTRATION_ANTSAPPLYTRANSFORMS as TRANSFORM_APARC_ASEG  } from '../modules/nf-scil/registration/antsapplytransforms/main'
@@ -107,22 +106,6 @@ workflow SURGERYFLOW {
         Channel.empty()
     )
 
-    //TODO: Probably to delete. Feed fa from DTIMETRICS instead
-    // //
-    // // MODULE: Run RECONST/DTIMETRICS (REGISTRATION_FA)
-    // //
-    // ch_registration_fa = PREPROC_DWI.out.dwi_resample
-    //     .join(PREPROC_DWI.out.bval)
-    //     .join(PREPROC_DWI.out.bvec)
-    //     .join(PREPROC_DWI.out.b0_mask)
-
-    // REGISTRATION_FA( ch_registration_fa )
-
-    /* RECONSTRUCTION */
-
-    //
-    // MODULE: Run RECONST/DTIMETRICS
-    //
     ch_dti_metrics = PREPROC_DWI.out.dwi_resample
         .join(PREPROC_DWI.out.bval)
         .join(PREPROC_DWI.out.bvec)
@@ -247,10 +230,6 @@ workflow SURGERYFLOW {
     //
     // SUBWORKFLOW: Run BUNDLE_SEG
     //
-
-    // RECONST_DTIMETRICS.out.fa.view()
-    // ch_tractogram.view()
-    // ch_atlas_directory.view()
 
     BUNDLE_SEG( RECONST_DTIMETRICS.out.fa,
         ch_tractogram)
