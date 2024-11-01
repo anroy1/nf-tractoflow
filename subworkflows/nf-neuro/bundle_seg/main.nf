@@ -13,7 +13,7 @@ def fetch_bundleseg_atlas(atlasUrl, configUrl, dest) {
     }
 
     def config = new File("$dest/config.zip").withOutputStream { out ->
-        new URL(configUrl).withInputStream { fnrom -> out << from; }
+        new URL(configUrl).withInputStream { from -> out << from; }
     }
 
     def atlasFile = new ZipFile("$dest/atlas.zip")
@@ -59,9 +59,9 @@ workflow BUNDLE_SEG {
 
         // ** Setting up Atlas reference channels. ** //
         if ( params.atlas_directory ) {
-            atlas_anat = Channel.fromPath("$params.atlas_directory/atlas/mni_masked.nii.gz", checkIfExists:true)
-            atlas_config = Channel.fromPath("$params.atlas_directory/config/config_fss_1.json")
-            atlas_average = Channel.fromPath("$params.atlas_directory/atlas/atlas/")
+            atlas_anat = Channel.fromPath("$atlas_directory/atlas/mni_masked.nii.gz")
+            atlas_config = Channel.fromPath("$atlas_directory/config/config_fss_1.json")
+            atlas_average = Channel.fromPath("$atlas_directory/atlas/atlas/")
         }
         else {
             fetch_bundleseg_atlas(  "https://zenodo.org/records/10103446/files/atlas.zip?download=1",
@@ -84,8 +84,6 @@ workflow BUNDLE_SEG {
         ch_recognize_bundle =  ch_tractogram.join(REGISTRATION_ANTS.out.transfo_image)
                                             .combine(atlas_config)
                                             .combine(atlas_average)
-
-        ch_recognize_bundle.view()
 
         BUNDLE_RECOGNIZE ( ch_recognize_bundle )
         ch_versions = ch_versions.mix(BUNDLE_RECOGNIZE.out.versions.first())

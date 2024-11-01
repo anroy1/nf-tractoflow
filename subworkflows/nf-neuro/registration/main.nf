@@ -1,7 +1,6 @@
 include { REGISTRATION_ANATTODWI  } from '../../../modules/nf-neuro/registration/anattodwi/main'
 include { REGISTRATION_ANTS   } from '../../../modules/nf-neuro/registration/ants/main'
 include { REGISTRATION_EASYREG   } from '../../../modules/nf-neuro/registration/easyreg/main'
-include { REGISTRATION_SYNTHREGISTRATION } from '../../../modules/nf-neuro/registration/synthregistration/main'
 
 params.run_easyreg = false
 
@@ -48,23 +47,6 @@ workflow REGISTRATION {
             out_segmentation = ch_segmentation.mix( REGISTRATION_EASYREG.out.flo_seg )
             out_ref_segmentation = ch_ref_segmentation.mix( REGISTRATION_EASYREG.out.ref_seg )
 
-        }
-
-        else if ( params.run_synthmorph ) {
-            // ** Set up input channel ** //
-            ch_register = ch_image.join(ch_ref)
-
-            // ** Registration using synthmorph ** //
-            REGISTRATION_SYNTHREGISTRATION ( ch_register )
-            ch_versions = ch_versions.mix(REGISTRATION_SYNTHREGISTRATION.out.versions.first())
-
-            // ** Setting outputs ** //
-            image_warped = REGISTRATION_SYNTHREGISTRATION.out.warped_image
-            transfo_image = REGISTRATION_SYNTHREGISTRATION.out.transfo_image
-            transfo_trk = Channel.empty()
-            ref_warped = Channel.empty()
-            out_segmentation = Channel.empty()
-            out_ref_segmentation = Channel.empty()
         }
 
         else {
