@@ -64,7 +64,7 @@ workflow SURGERYFLOW {
     ch_bet_probability = params.run_synthbet ? Channel.empty() : Channel.fromPath(params.t1_bet_template_probability_map, checkIfExists: true)
 
     /* Load atlas directory. If not provided, will automatically fetch the atlas archives. */
-    ch_atlas_directory = Channel.fromPath(params.atlas_directory, checkIfExists: true)
+    ch_atlas_directory = params.atlas_directory ? Channel.fromPath(params.atlas_directory, checkIfExists: true) : []
     /* Load freesurfer license */
     ch_fs_license = params.fs_license ? Channel.fromPath(params.fs_license, checkIfExists: true) : Channel.empty()
 
