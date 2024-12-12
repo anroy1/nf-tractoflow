@@ -21,7 +21,7 @@ process REGISTRATION_SYNTHREGISTRATION {
     def prefix = task.ext.prefix ?: "${meta.id}"
 
     def affine = task.ext.affine ? "-m " + task.ext.affine : "-m affine"
-    def warp = task.ext.warp ? "-m " + task.ext.warp : "-m deform"
+    def warp = task.ext.warp ? "-m " + task.ext.warp : "-m joint"
     def header = task.ext.header ? "-H" : ""
     def gpu = task.ext.gpu ? "-g" : ""
     def lambda = task.ext.lambda ? "-r " + task.ext.lambda : ""
@@ -35,7 +35,7 @@ process REGISTRATION_SYNTHREGISTRATION {
     export OPENBLAS_NUM_THREADS=1
 
     mri_synthmorph -j $task.cpus ${affine} -t ${prefix}__affine_warp.lta $moving $fixed
-    mri_synthmorph -j $task.cpus ${warp} ${gpu} ${lambda} ${steps} ${extent} ${weight} -i ${prefix}__affine_warp.lta  -t ${prefix}__deform_warp.nii.gz -o ${prefix}__output_warped.nii.gz $moving $fixed
+    mri_synthmorph -j $task.cpus ${warp} ${gpu} ${lambda} ${steps} ${extent} ${weight} -t ${prefix}__deform_warp.nii.gz -o ${prefix}__output_warped.nii.gz $moving $fixed
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":

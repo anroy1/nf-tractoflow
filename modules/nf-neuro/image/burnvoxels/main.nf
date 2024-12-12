@@ -32,11 +32,11 @@ process IMAGE_BURNVOXELS {
     mkdir masks_burned/
     cnt=25
     nb_masks=${nb_masks}
-    step=\$(echo 300 \${nb_masks} | awk '{print \$1 / (\$2 - 1)}')
+    step=\$(echo 300 \${nb_masks} | awk '{print int(\$1 / (\$2 - 1))}')
 
     for m in ${masks_list};
     do
-        mname=\${m%%.*}
+        mname=\${m%%.nii*}
         mname=\${mname##*__}
         scil_volume_math.py convert \${m} masks_burned/tmp_\${mname}_f32.nii.gz --data_type float32 -f
         mrcalc \${cnt} masks_burned/tmp_\${mname}_f32.nii.gz -multiply masks_burned/mask_\${mname}_\${cnt}.nii.gz -force

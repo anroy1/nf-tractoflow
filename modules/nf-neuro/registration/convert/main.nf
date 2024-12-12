@@ -43,11 +43,11 @@ process REGISTRATION_CONVERT {
     if [[ -f "$affine" ]];
     then
         declare -A affine_dictionnary=( ["--outlta"]="lta" \
-                                        ["--outfsl"]="mat" \
+                                        ["--outfsl"]="txt" \
                                         ["--outmni"]="xfm" \
                                         ["--outreg"]="dat" \
                                         ["--outniftyreg"]="txt" \
-                                        ["--outitk"]="txt" \
+                                        ["--outitk"]="mat" \
                                         ["--outvox"]="txt" )
 
         ext_affine=\${affine_dictionnary[${out_format_affine}]}

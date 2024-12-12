@@ -16,9 +16,9 @@ process IO_SAFECASTINPUTS {
     label 'process_single'
 
     input:
-        tuple val(meta), path(dwi), path(bval), path(bvec), path(sbref), path(rev_dwi), path(rev_bval), path(rev_bvec), path(rev_sbref), path(t1), path(wmparc), path(aparc_aseg), path(lesion_mask)
+        tuple val(meta), path(dwi), path(bval), path(bvec), path(sbref), path(rev_dwi), path(rev_bval), path(rev_bvec), path(rev_sbref), path(t1), path(wmparc), path(aparc_aseg), path(lesion_mask), path(dicom)
     output:
-        tuple val(meta), path("$out_dwi"), path("$out_bval"), path("$out_bvec"), path("$out_sbref"), path("$out_rev_dwi"), path("$out_rev_bval"), path("$out_rev_bvec"), path("$out_rev_sbref"), path("$out_t1"), path("$out_wmparc"), path("$out_aparc_aseg"), path("$out_lesion_mask"), emit: safe_inputs
+        tuple val(meta), path("$out_dwi"), path("$out_bval"), path("$out_bvec"), path("$out_sbref"), path("$out_rev_dwi"), path("$out_rev_bval"), path("$out_rev_bvec"), path("$out_rev_sbref"), path("$out_t1"), path("$out_wmparc"), path("$out_aparc_aseg"), path("$out_lesion_mask"), path("$out_dicom"), emit: safe_inputs
     script:
         out_dwi = dwi ? safecast_filetype(dwi, 'nii.gz') : "$dwi"
         out_bval = bval ? safecast_filetype(bval, 'bval') : "$bval"
@@ -32,6 +32,7 @@ process IO_SAFECASTINPUTS {
         out_wmparc = wmparc ? safecast_filetype(wmparc, 'nii.gz') : "$wmparc"
         out_aparc_aseg = aparc_aseg ? safecast_filetype(aparc_aseg, 'nii.gz') : "$aparc_aseg"
         out_lesion_mask = lesion_mask ? safecast_filetype(lesion_mask, 'nii.gz') : "$lesion_mask"
+        out_dicom = dicom ? safecast_filetype(dicom, 'dcm') : "$dicom"
     """
     """
 }

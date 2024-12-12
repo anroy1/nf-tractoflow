@@ -32,7 +32,7 @@ workflow TOPUP_EDDY {
             }
 
         // ** RUN TOPUP ** //
-        PREPROC_TOPUP ( ch_topup.with_topup.view(), ch_config_topup.view() )
+        PREPROC_TOPUP ( ch_topup.with_topup, ch_config_topup )
         ch_versions = ch_versions.mix(PREPROC_TOPUP.out.versions.first())
 
         // ** Create channel for EDDY ** //

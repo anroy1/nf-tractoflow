@@ -6,8 +6,8 @@
     "type": "array",
     "items": {
         "type": "object",
-        "minProperties": 5,
-        "maxProperties": 12,
+        "minProperties": 6,
+        "maxProperties": 13,
         "properties": {
             "subject": {
                 "type": "string",
@@ -194,8 +194,23 @@
                     }
                 ],
                 "errorMessage": "Lesion mask in Nifti format, cannot contain spaces and must have extension '.nii' or '.nii.gz'"
+            },
+            "dicom": {
+                "type": "string",
+                "anyOf": [
+                    {
+                        "format": "file-path",
+                        "exists": true,
+                        "pattern": "^\\S+\\.dcm$"
+                    },
+                    {
+                        "format": "url",
+                        "mimetype": "text/plain"
+                    }
+                ],
+                "errorMessage": "Template dicom file, must have extension '.dcm'"
             }
         },
-        "required": ["subject", "dwi", "bval", "bvec", "t1"]
+        "required": ["subject", "dwi", "bval", "bvec", "t1", "dicom"]
     }
 }

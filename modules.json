@@ -90,6 +90,11 @@
                         "git_sha": "072538948dd406f6a88cdcf456dc3b132b66e5b6",
                         "installed_by": ["bundle_seg", "registration"]
                     },
+                    "registration/antsapplytransforms": {
+                        "branch": "main",
+                        "git_sha": "43ec7aa8c9b19bcb2fde3999e9bb71e674130d5d",
+                        "installed_by": ["modules"]
+                    },
                     "registration/convert": {
                         "branch": "fix-convert",
                         "git_sha": "dcdc6b0bde58e07bbdaf0dccd872d8e8b355cd50",
@@ -104,6 +109,11 @@
                         "branch": "fix-synthregistration",
                         "git_sha": "31395fe4268b8aa1cb032a931795745982e30223",
                         "installed_by": ["modules", "registration"]
+                    },
+                    "registration/tractogram": {
+                        "branch": "main",
+                        "git_sha": "072538948dd406f6a88cdcf456dc3b132b66e5b6",
+                        "installed_by": ["modules"]
                     },
                     "segmentation/fastseg": {
                         "branch": "dev",

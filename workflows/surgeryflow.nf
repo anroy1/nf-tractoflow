@@ -32,6 +32,9 @@ include {   TRACKING_LOCALTRACKING } from '../modules/nf-scil/tracking/localtrac
 // BUNDLESEG
 include { BUNDLE_SEG } from '../subworkflows/nf-neuro/bundle_seg/main'
 
+// NII_TO_DICOM
+include { NII_TO_DICOM } from '../subworkflows/nf-neuro/nii_to_dicom/main'
+
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     RUN MAIN WORKFLOW
@@ -70,7 +73,7 @@ workflow SURGERYFLOW {
 
     /* Unpack inputs */
     ch_inputs = ch_samplesheet
-        .multiMap{ meta, dwi, bval, bvec, sbref, rev_dwi, rev_bval, rev_bvec, rev_sbref, t1, wmparc, aparc_aseg, lesion_mask ->
+        .multiMap{ meta, dwi, bval, bvec, sbref, rev_dwi, rev_bval, rev_bvec, rev_sbref, t1, wmparc, aparc_aseg, lesion_mask, dicom ->
             dwi: [meta, dwi, bval, bvec]
             sbref: [meta, sbref]
             rev_dwi: [meta, rev_dwi, rev_bval, rev_bvec]
@@ -79,6 +82,7 @@ workflow SURGERYFLOW {
             wmparc: [meta, wmparc]
             aparc_aseg: [meta, aparc_aseg]
             lesion_mask: [meta, lesion_mask]
+            dicom: [meta, dicom]
         }
 
     /* PREPROCESSING */
@@ -168,39 +172,14 @@ workflow SURGERYFLOW {
 
     REGISTRATION_CONVERT( ch_convert )
 
-    /* SEGMENTATION */
-
-    //
-    // MODULE: Run REGISTRATION_ANTSAPPLYTRANSFORMS (TRANSFORM_WMPARC)
-    //
-    TRANSFORM_WMPARC(
-        ch_inputs.wmparc
-            .filter{ it[1] }
-            .join(PREPROC_DWI.out.b0)
-            .join(REGISTRATION_CONVERT.out.deform_transform)
-            .map{ it[0..2] + [it[3..-1]] }
-    )
-
-    //
-    // MODULE: Run REGISTRATION_ANTSAPPLYTRANSFORMS (TRANSFORM_APARC_ASEG)
-    //
-    TRANSFORM_APARC_ASEG(
-        ch_inputs.aparc_aseg
-            .filter{ it[1] }
-            .join(PREPROC_DWI.out.b0)
-            .join(REGISTRATION_CONVERT.out.deform_transform)
-            .map{ it[0..2] + [it[3..-1]] }
-    )
-
     //
     // SUBWORKFLOW: Run ANATOMICAL_SEGMENTATION
     //
     ANATOMICAL_SEGMENTATION(
         T1_REGISTRATION.out.image_warped,
-        TRANSFORM_APARC_ASEG.out.warpedimage
-            .join(TRANSFORM_WMPARC.out.warpedimage),
-            ch_inputs.lesion_mask,
-            ch_fs_license
+        Channel.empty(),
+        Channel.empty(),
+        ch_fs_license
     )
 
     //
@@ -216,6 +195,9 @@ workflow SURGERYFLOW {
     //
     // MODULE: Run TRACKING/LOCALTRACKING
     //
+    // ch_local_tracking = (params.fodf_local_fit_tracking_mask_type == "fa" ? Channel.value([meta, []]) : ANATOMICAL_SEGMENTATION.out.wm_mask)
+    //     .join(RECONST_FODF.out.fodf)
+    //     .join(params.fodf_local_fit_tracking_mask_type == "fa" ? Channel.value([meta, []]) : RECONST_DTIMETRICS.out.fa)
     ch_local_tracking = ANATOMICAL_SEGMENTATION.out.wm_mask
         .join(RECONST_FODF.out.fodf)
         .join(RECONST_DTIMETRICS.out.fa)
@@ -233,6 +215,18 @@ workflow SURGERYFLOW {
 
     BUNDLE_SEG( RECONST_DTIMETRICS.out.fa,
         ch_tractogram)
+
+    ch_bundles = BUNDLE_SEG.out.bundles
+    .map { meta, bundle ->
+        tuple(meta, bundle.findAll { filename ->
+            params.bundles.split(" ").any { substring ->
+                filename.toString().contains(substring)
+            }
+        })
+    }
+    ch_bundles.view()
+
+    NII_TO_DICOM(ch_inputs.t1, REGISTRATION_CONVERT.out.affine_transform, REGISTRATION_CONVERT.out.deform_transform, ch_bundles, ch_inputs.dicom)
 
     //
     // Collate and save software versions

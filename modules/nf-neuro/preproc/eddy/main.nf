@@ -34,9 +34,9 @@ process PREPROC_EDDY {
     def extra_args = task.ext.extra_args ?: ""
 
     """
-    export ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS=1
-    export OMP_NUM_THREADS=1
-    export OPENBLAS_NUM_THREADS=1
+    export ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS=$task.cpus
+    export OMP_NUM_THREADS=$task.cpus
+    export OPENBLAS_NUM_THREADS=$task.cpus
     export ANTS_RANDOM_SEED=7468
 
     orig_bval=$bval

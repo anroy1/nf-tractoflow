@@ -135,14 +135,14 @@ workflow PIPELINE_INITIALISATION {
             return [[id: sid],
                 file(item.dwi), file(item.bval), file(item.bvec), file(item.topup),
                 file(item.rev_dwi), file(item.rev_bval), file(item.rev_bvec), file(item.rev_topup),
-                file(item.t1), file(item.wmparc), file(item.aparc_aseg)]
+                file(item.t1), file(item.wmparc), file(item.aparc_aseg), file(item.dicom)]
         }
     }
 
     ch_samplesheet = ch_samplesheet.mix(ch_input_sheets.raw)
 
     IO_SAFECASTINPUTS( ch_samplesheet )
-
+    IO_SAFECASTINPUTS.out.safe_inputs
     emit:
     samplesheet = IO_SAFECASTINPUTS.out.safe_inputs
     versions    = ch_versions
